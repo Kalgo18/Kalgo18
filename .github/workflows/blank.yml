@@ -1,0 +1,107 @@
+# This is a basic workflow to help you get started with Actions
+// identity.js
+
+const algosdk = require('algosdk');
+
+// Configure Algorand node connection details
+const algodToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; // Replace with your Algorand node token
+const algodServer = 'http://localhost'; // Replace with your Algorand node server address
+const algodPort = 4001; // Replace with your Algorand node server port
+
+// Create an Algorand client
+const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+
+async function helloWorld() {
+  try {
+    // Get the suggested parameters from the Algod node
+    let params = await algodClient.getTransactionParams().do();
+
+    // Define the transaction sender (your Algorand account address)
+    let sender = "YOUR_ALGORAND_ACCOUNT_ADDRESS"; // Replace with your actual address
+
+    // Create a transaction
+    let txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      from: sender,
+      to: sender, // Sending to yourself for this example
+      amount: 0, // No Algo transfer in this example
+      note: new Uint8Array(Buffer.from("Hello World")), // Add a note to the transaction
+      suggestedParams: params
+    });
+
+    // Sign the transaction
+    let signedTxn = txn.signTxn(algosdk.mnemonicToSecretKey("YOUR_MNEMONIC_PHRASE").sk); // Replace with your actual mnemonic phrase
+
+    // Send the transaction to the network
+    let txId = txn.txID().toString();
+    console.log("Signed transaction with txID: %s", txId);
+    await algodClient.sendRawTransaction(signedTxn).do();
+
+    // Wait for confirmation
+    let confirmedTxn = await algosdk.waitForConfirmation(algodClient, txId, 4);
+    console.log("Transaction " + txId + " confirmed in round " + confirmedTxn["confirmed-round"]);
+
+  } catch (err) {
+    console.error("Error:", err);
+  }
+}
+
+helloWorld();
+
+Explanation:
+ * This code defines a simple smart contract that sends a "Hello World" message as a transaction note on the Algorand blockchain.
+ * You'll need to replace the placeholder values with your actual Algorand node details, account address, and mnemonic phrase.
+ * The algosdk library provides the necessary functions to interact with the Algorand blockchain.
+ * The code first retrieves the suggested transaction parameters from the Algorand node.
+ * Then, it creates a payment transaction with a note containing the "Hello World" message.
+ * The transaction is signed using your mnemonic phrase and sent to the network.
+ * Finally, the code waits for confirmation that the transaction has been included in a block.
+Where to Enter the Code:
+ * Create a new file: In your Spck Editor app, create a new file named identity.js.
+ * Copy and paste: Copy the code above and paste it into the identity.js file.
+ * Save the file: Save the file in your GitHub repository (if you cloned it to your phone).
+Running the Code:
+ * You'll need to use the command line to run this code. You can either use a terminal app on your phone (like Termux) or connect to a remote development environment.
+ * Navigate to the directory where you saved the identity.js file.
+ * Run the command node identity.js to execute the code.
+Important Notes:
+ * Make sure you have the Algorand JavaScript SDK installed. You can include it using a CDN link in your code or use a package manager like npm (which might be more challenging on a phone).
+ * Never share your mnemonic phrase with anyone. Keep it safe and secure.
+ * This is a very basic example. We'll build upon this foundation to create the more complex logic for our identity storage tool.
+I'm here to help you if you encounter any issues or have questions about the code. Let me know how it goes!
+ * https://github.com/josefophe/algo-tut1
+ * https://www.lucaford.com/posts/crear-dapp-en-algorand-generar-cuentas-transacciones
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
